@@ -27,4 +27,4 @@ class SQLiteDataManager(DataManagerInterface):
         movie = Movie.query.get(movie_id)
         if movie:
             db.session.delete(movie)
-            db.session.commit()
+            db.session.commit()me
