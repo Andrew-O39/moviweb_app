@@ -1,6 +1,6 @@
 
 from flask_sqlalchemy import SQLAlchemy
-from datamanager.data_manager_interface import DataManagerInterface
+from data_manager_interface import DataManagerInterface
 from app_models import User, Movie
 
 class SQLiteDataManager(DataManagerInterface):
