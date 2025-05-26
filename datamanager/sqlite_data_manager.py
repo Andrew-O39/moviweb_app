@@ -12,8 +12,9 @@ class SQLiteDataManager(DataManagerInterface):
     def get_user_movies(self, user_id):
         return Movie.query.filter_by(user_id=user_id).all()
 
-    def add_user(self, user):
-        db.session.add(user)
+    def add_user(self, name):
+        new_user = User(name=name)
+        db.session.add(new_user)
         db.session.commit()
 
     def add_movie(self, movie):
@@ -27,4 +28,4 @@ class SQLiteDataManager(DataManagerInterface):
         movie = Movie.query.get(movie_id)
         if movie:
             db.session.delete(movie)
-            db.session.commit()me
+            db.session.commit()
