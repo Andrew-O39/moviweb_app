@@ -1,25 +1,32 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from app_models import db, User, Movie  # db is the SQLAlchemy instance
+from flask import Flask, current_app, jsonify
+from datamanager.sqlite_data_manager import SQLiteDataManager
+from app_models import db, User, Movie
 
-app = Flask(__name__)
+def create_app():
+    app = Flask(__name__)
 
-# Configure SQLite database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Bind SQLAlchemy to the app
-db.init_app(app)
+    db.init_app(app)
 
-# Create tables within the app context
-with app.app_context():
-    db.create_all()
-    print("Database and tables created successfully!")
+    with app.app_context():
+        db.create_all()
+        app.data_manager = SQLiteDataManager(app.config['SQLALCHEMY_DATABASE_URI'])
 
-# Optional: Define a basic route
+    return app
+
+app = create_app()
+
 @app.route("/")
 def home():
-    return "Welcome to MoviWebApp!"
+    return "🎬 Welcome to MoviWebApp!"
+
+@app.route("/users")
+def list_users():
+    dm = current_app.data_manager
+    users = dm.get_all_users()
+    return jsonify([{"id": u.id, "name": u.name} for u in users])
 
 if __name__ == "__main__":
     app.run(debug=True)
