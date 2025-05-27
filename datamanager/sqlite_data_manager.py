@@ -1,4 +1,3 @@
-
 from datamanager.data_manager_interface import DataManagerInterface
 from app_models import db, User, Movie
 
