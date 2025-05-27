@@ -19,9 +19,15 @@ class SQLiteDataManager(DataManagerInterface):
         db.session.add(new_user)
         db.session.commit()
 
-    def add_movie(self, movie_data):
-        movie = Movie(**movie_data)
-        db.session.add(movie)
+    def add_movie(self, name, director, year, rating, user_id):
+        new_movie = Movie(
+            name=name,
+            director=director,
+            year=int(year),
+            rating=float(rating),
+            user_id=user_id
+        )
+        db.session.add(new_movie)
         db.session.commit()
 
     def get_movie_by_id(self, movie_id):

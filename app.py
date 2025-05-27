@@ -1,4 +1,4 @@
-from flask import Flask, flash, render_template, request, redirect, url_for, abort
+from flask import Flask, current_app, flash, render_template, request, redirect, url_for, abort
 from datamanager.sqlite_data_manager import SQLiteDataManager
 from app_models import db, User, Movie
 from dotenv import load_dotenv
@@ -21,7 +21,7 @@ def create_app():
     # Define routes inside app context
     @app.route("/")
     def home():
-        return "Welcome to MovieWeb App!"
+        return render_template("index.html")
 
     @app.route("/users")
     def list_users():
@@ -75,12 +75,12 @@ def create_app():
                     "user_id": user_id
                 }
                 app.data_manager.add_movie(**movie_data)
-                flash("Movie added successfully.", "success")
+                flash(f'Movie "{movie_data["name"]}" added successfully!', 'success')
                 return redirect(url_for("user_movies", user_id=user_id))
             except Exception as e:
                 return render_template("error.html", message=f"Failed to add movie: {e}")
 
-        return render_template("add_movie.html", user=user)
+        return render_template("add_movie.html", user_id=user_id)
 
 
     @app.route("/users/<int:user_id>/update_movie/<int:movie_id>", methods=["GET", "POST"])
@@ -100,13 +100,12 @@ def create_app():
                     "rating": float(request.form["rating"]),
                 }
                 app.data_manager.update_movie(movie_id, updated_data)
-                flash("Movie updated successfully.", "success")
+                flash(f'Movie "{movie.name}" updated successfully!', 'success')
                 return redirect(url_for("user_movies", user_id=user.id))
             except Exception as e:
                 return render_template("error.html", message=f"Failed to update movie: {e}")
 
-        return render_template("update_movie.html", user=user, movie=movie)
-
+        return render_template("update_movie.html", user_id=user_id, movie=movie)
 
     @app.route("/users/<int:user_id>/delete_movie/<int:movie_id>", methods=["POST"])
     def delete_movie(user_id, movie_id):
@@ -117,12 +116,13 @@ def create_app():
             abort(404, description="User or Movie not found")
 
         try:
+            movie_name = movie.name
             app.data_manager.delete_movie(movie_id)
-            flash("Movie deleted successfully.", "success")
-            return redirect(url_for("user_movies", user_id=user.id))
+            flash(f'Movie "{movie_name}" deleted successfully!', 'success')
         except Exception as e:
             return render_template("error.html", message=f"Failed to delete movie: {e}")
 
+        return redirect(url_for("user_movies", user_id=user.id))
 
     @app.errorhandler(404)
     def page_not_found(e):
