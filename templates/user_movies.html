@@ -5,25 +5,41 @@
     <title>{{ user.name }}'s Movies - MovieWeb App</title>
 </head>
 <body>
-    <h1>{{ user.name }}'s Favorite Movies</h1>
+    {% extends "base.html" %}
 
-    <a href="/users/{{ user.id }}/add_movie">➕ Add New Movie</a>
+{% block title %}{{ user.name }}'s Movies - MovieWeb App{% endblock %}
 
-    <ul>
-        {% for movie in movies %}
-            <li>
-                <strong>{{ movie.name }}</strong> ({{ movie.year }})
-                - Directed by {{ movie.director }}
-                - Rated: {{ movie.rating }}
+{% block content %}
+<h1 class="text-primary mb-4">{{ user.name }}'s Favorite Movies</h1>
 
-                [<a href="/users/{{ user.id }}/update_movie/{{ movie.id }}">Edit</a>]
-                [<a href="/users/{{ user.id }}/delete_movie/{{ movie.id }}">Delete</a>]
-            </li>
-        {% else %}
-            <li>No movies found.</li>
-        {% endfor %}
-    </ul>
+<a href="/users/{{ user.id }}/add_movie" class="btn btn-success mb-4">+ Add New Movie</a>
 
-    <p><a href="/users">← Back to Users</a></p>
+{% if movies %}
+<div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for movie in movies %}
+    <div class="col">
+        <div class="card h-100 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">{{ movie.name }}</h5>
+                <p class="card-text">
+                    <strong>Director:</strong> {{ movie.director }}<br>
+                    <strong>Year:</strong> {{ movie.year }}<br>
+                    <strong>Rating:</strong> {{ movie.rating }}
+                </p>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <a href="/users/{{ user.id }}/update_movie/{{ movie.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form action="/users/{{ user.id }}/delete_movie/{{ movie.id }}" method="post" style="margin: 0;">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this movie?')">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+    <p class="text-muted">No movies found. Click "Add New Movie" to get started.</p>
+{% endif %}
+{% endblock %}
 </body>
 </html>

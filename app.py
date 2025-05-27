@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, flash, render_template, request, redirect, url_for, abort
 from datamanager.sqlite_data_manager import SQLiteDataManager
 from app_models import db, User, Movie
 
 def create_app():
     app = Flask(__name__)
+    app.secret_key = 'your_secret_key_here'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -23,26 +24,110 @@ def create_app():
         users = app.data_manager.get_all_users()
         return render_template("users.html", users=users)
 
+
     @app.route("/users/<int:user_id>")
     def user_movies(user_id):
-        user = db.session.get(User, user_id)
-        if not user:
-            return f"User with ID {user_id} not found.", 404
+        try:
+            user = app.data_manager.get_user_by_id(user_id)
+            if not user:
+                abort(404, description="User not found")
 
-        movies = app.data_manager.get_user_movies(user_id)
-        return render_template("user_movies.html", user=user, movies=movies)
+            movies = app.data_manager.get_user_movies(user_id)
+            return render_template("user_movies.html", user=user, movies=movies)
 
-    from flask import request, redirect, url_for
+        except Exception as e:
+            return render_template("error.html", message=f"Could not load user movies: {e}")
+
 
     @app.route("/add_user", methods=["GET", "POST"])
     def add_user():
         if request.method == "POST":
             name = request.form.get("name")
-            if name:
+            if not name:
+                return render_template("error.html", message="Name is required.")
+
+            try:
                 app.data_manager.add_user(name)
                 return redirect(url_for("list_users"))
-            return "Name is required.", 400
+            except Exception as e:
+                return render_template("error.html", message=f"Failed to add user: {e}")
+
         return render_template("add_user.html")
+
+
+    @app.route("/users/<int:user_id>/add_movie", methods=["GET", "POST"])
+    def add_movie(user_id):
+        user = app.data_manager.get_user_by_id(user_id)
+        if not user:
+            abort(404, description="User not found")
+
+        if request.method == "POST":
+            try:
+                movie_data = {
+                    "name": request.form["name"],
+                    "director": request.form["director"],
+                    "year": int(request.form["year"]),
+                    "rating": float(request.form["rating"]),
+                    "user_id": user_id
+                }
+                app.data_manager.add_movie(**movie_data)
+                flash("Movie added successfully.", "success")
+                return redirect(url_for("user_movies", user_id=user_id))
+            except Exception as e:
+                return render_template("error.html", message=f"Failed to add movie: {e}")
+
+        return render_template("add_movie.html", user=user)
+
+
+    @app.route("/users/<int:user_id>/update_movie/<int:movie_id>", methods=["GET", "POST"])
+    def update_movie(user_id, movie_id):
+        user = app.data_manager.get_user_by_id(user_id)
+        movie = app.data_manager.get_movie_by_id(movie_id)
+
+        if not user or not movie or movie.user_id != user.id:
+            abort(404, description="User or Movie not found")
+
+        if request.method == "POST":
+            try:
+                updated_data = {
+                    "name": request.form["name"],
+                    "director": request.form["director"],
+                    "year": int(request.form["year"]),
+                    "rating": float(request.form["rating"]),
+                }
+                app.data_manager.update_movie(movie_id, updated_data)
+                flash("Movie updated successfully.", "success")
+                return redirect(url_for("user_movies", user_id=user.id))
+            except Exception as e:
+                return render_template("error.html", message=f"Failed to update movie: {e}")
+
+        return render_template("update_movie.html", user=user, movie=movie)
+
+
+    @app.route("/users/<int:user_id>/delete_movie/<int:movie_id>", methods=["POST"])
+    def delete_movie(user_id, movie_id):
+        user = app.data_manager.get_user_by_id(user_id)
+        movie = app.data_manager.get_movie_by_id(movie_id)
+
+        if not user or not movie or movie.user_id != user.id:
+            abort(404, description="User or Movie not found")
+
+        try:
+            app.data_manager.delete_movie(movie_id)
+            flash("Movie deleted successfully.", "success")
+            return redirect(url_for("user_movies", user_id=user.id))
+        except Exception as e:
+            return render_template("error.html", message=f"Failed to delete movie: {e}")
+
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return render_template('404.html', message=getattr(e, 'description', 'Page not found.')), 404
+
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        return render_template('500.html', message="An internal server error occurred."), 500
 
     return app
 
