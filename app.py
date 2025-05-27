@@ -1,4 +1,4 @@
-from flask import Flask, current_app, flash, render_template, request, redirect, url_for, abort
+from flask import Flask, flash, render_template, request, redirect, url_for, abort
 from datamanager.sqlite_data_manager import SQLiteDataManager
 from app_models import db, User, Movie
 from dotenv import load_dotenv
@@ -107,6 +107,7 @@ def create_app():
 
         return render_template("update_movie.html", user_id=user_id, movie=movie)
 
+
     @app.route("/users/<int:user_id>/delete_movie/<int:movie_id>", methods=["POST"])
     def delete_movie(user_id, movie_id):
         user = app.data_manager.get_user_by_id(user_id)
@@ -123,6 +124,24 @@ def create_app():
             return render_template("error.html", message=f"Failed to delete movie: {e}")
 
         return redirect(url_for("user_movies", user_id=user.id))
+
+    from flask import current_app
+
+    @app.route("/delete_user/<int:user_id>", methods=["POST"])
+    def delete_user(user_id):
+        user = app.data_manager.get_user_by_id(user_id)
+        if not user:
+            abort(404, description="User not found")
+
+        try:
+            user_name = user.name
+            app.data_manager.delete_user(user_id)
+            flash(f'User "{user_name}" and all their movies deleted successfully.', "success")
+        except Exception as e:
+            return render_template("error.html", message=f"Failed to delete user: {e}")
+
+        return redirect(url_for("list_users"))
+
 
     @app.errorhandler(404)
     def page_not_found(e):

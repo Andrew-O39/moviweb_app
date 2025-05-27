@@ -1,20 +1,75 @@
 .fab {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    font-size: 30px;
-    background-color: #007bff;
-    color: white;
-    border-radius: 50%;
-    text-align: center;
-    line-height: 60px;
-    text-decoration: none;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-    z-index: 100;
-    transition: background-color 0.3s ease;
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 60px;
+  height: 60px;
+  background-color: #00bfa6;
+  color: white;
+  font-size: 2rem;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 60px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transition: background-color 0.3s ease;
+  text-decoration: none;
 }
+
 .fab:hover {
-    background-color: #0056b3;
+  background-color: #009e8c;
+  text-decoration: none;
 }
+
+body {
+  background-color: #1e1e1e;
+  color: #f1f1f1;
+  ont-family: 'Poppins', sans-serif;
+  font-size: 16px;
+}
+
+/* Users page styling with dark brownish background */
+.user-card {
+  background-color: #3e2f24; /* dark brownish background */
+  color: #ffffff; /* white text */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* clean modern font */
+  font-size: 1.5rem; /* bigger font size */
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+
+.user-card:hover {
+  background-color: #5a4335; /* lighter brown on hover */
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25);
+}
+
+.card-title {
+  color: #d2b48c; /* tan color for user names */
+  font-weight: 600;
+  font-size: 2rem;
+}
+
+/* Buttons */
+.btn-outline-dark {
+  border-color: #d2b48c;
+  color: #d2b48c;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-outline-dark:hover {
+  background-color: #d2b48c;
+  color: #3e2f24;
+}
+
+/* Make delete buttons match hover effect */
+.btn-danger {
+  background-color: #6e3f22;
+  border-color: #6e3f22;
+  color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-danger:hover {
+  background-color: #a15f3d;
+  border-color: #a15f3d;
+  box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
+  color: #fff;

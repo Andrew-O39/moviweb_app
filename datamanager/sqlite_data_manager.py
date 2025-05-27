@@ -45,3 +45,12 @@ class SQLiteDataManager(DataManagerInterface):
         if movie:
             db.session.delete(movie)
             db.session.commit()
+
+    def delete_user(self, user_id):
+        # Delete all movies belonging to the user first
+        Movie.query.filter_by(user_id=user_id).delete()
+        # Then delete the user
+        user = User.query.get(user_id)
+        if user:
+            db.session.delete(user)
+            db.session.commit()
