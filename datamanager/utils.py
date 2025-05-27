@@ -28,7 +28,8 @@ def fetch_movie_details(title):
             "name": data.get("Title"),
             "director": data.get("Director"),
             "year": data.get("Year"),
-            "rating": data.get("imdbRating")
+            "rating": data.get("imdbRating"),
+            "poster_url": data.get("Poster")
         }
 
     except requests.RequestException as e:
