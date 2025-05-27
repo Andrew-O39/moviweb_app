@@ -1,6 +1,7 @@
 from flask import Flask, flash, render_template, request, redirect, url_for, abort
 from datamanager.sqlite_data_manager import SQLiteDataManager
 from app_models import db, User, Movie
+from datamanager.utils import fetch_movie_details
 from dotenv import load_dotenv
 import os
 
@@ -60,6 +61,9 @@ def create_app():
 
 
     @app.route("/users/<int:user_id>/add_movie", methods=["GET", "POST"])
+
+
+    @app.route("/users/<int:user_id>/add_movie", methods=["GET", "POST"])
     def add_movie(user_id):
         user = app.data_manager.get_user_by_id(user_id)
         if not user:
@@ -67,18 +71,25 @@ def create_app():
 
         if request.method == "POST":
             try:
-                movie_data = {
-                    "name": request.form["name"],
-                    "director": request.form["director"],
-                    "year": int(request.form["year"]),
-                    "rating": float(request.form["rating"]),
-                    "user_id": user_id
-                }
+                title = request.form.get("title", "").strip()
+                if not title:
+                    flash("Please enter a movie title.", "warning")
+                    return redirect(url_for("add_movie", user_id=user_id))
+
+                movie_data = fetch_movie_details(title) # Call function that fetches details from API
+
+                if not movie_data:
+                    flash("Movie not found in OMDb or an error occurred.", "danger")
+                    return redirect(url_for("add_movie", user_id=user_id))
+
+                movie_data["user_id"] = user_id
                 app.data_manager.add_movie(**movie_data)
-                flash(f'Movie "{movie_data["name"]}" added successfully!', 'success')
+                flash(f'Movie "{movie_data["name"]}" added successfully!', "success")
                 return redirect(url_for("user_movies", user_id=user_id))
+
             except Exception as e:
-                return render_template("error.html", message=f"Failed to add movie: {e}")
+                flash(f"An unexpected error occurred: {e}", "danger")
+                return render_template("error.html", message=str(e))
 
         return render_template("add_movie.html", user_id=user_id)
 
