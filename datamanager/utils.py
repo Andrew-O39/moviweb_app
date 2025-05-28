@@ -1,9 +1,11 @@
 import requests
 import os
+from dotenv import load_dotenv
 
 OMDB_API_KEY = os.getenv('OMDB_API_KEY')
 OMDB_URL = "http://www.omdbapi.com/"
 
+load_dotenv()
 
 def fetch_movie_details(title):
     """Fetch movie details from OMDb API by title."""

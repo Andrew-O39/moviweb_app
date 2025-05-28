@@ -1,5 +1,5 @@
 from datamanager.data_manager_interface import DataManagerInterface
-from app_models import db, User, Movie
+from models.app_models import db, User, Movie
 
 class SQLiteDataManager(DataManagerInterface):
     """This class handles database operations for users and movies."""
