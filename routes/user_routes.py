@@ -2,9 +2,11 @@ from flask import render_template, request, redirect, url_for, flash, abort
 from flask import current_app as app
 
 def register_user_routes(app):
-    """Register user-related routes to the Flask app.
-        Args:
-            app (Flask): The Flask application instance."""
+    """Registers user-related routes with the Flask application.
+    This includes routes for listing users, creating, updating,
+    and deleting user profiles.
+    Args:
+        app (Flask): The Flask application instance."""
 
     @app.route("/users")
     def list_users():

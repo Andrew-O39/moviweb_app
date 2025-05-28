@@ -3,7 +3,11 @@ from flask import current_app as app
 from datamanager.utils import fetch_movie_details
 
 def register_review_routes(app):
-    """Register review-related routes on the Flask app."""
+    """Registers review-related routes with the Flask application.
+    Enables functionality for adding, viewing, editing, and deleting
+    reviews associated with specific movies and users.
+    Args:
+        app (Flask): The Flask application instance."""
 
 
     @app.route('/users/<int:user_id>/movies/<int:movie_id>/add_review', methods=['GET', 'POST'])

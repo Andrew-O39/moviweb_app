@@ -3,6 +3,12 @@ from flask import current_app as app
 from datamanager.utils import fetch_movie_details
 
 def register_movie_routes(app):
+    """Registers movie-related routes with the Flask application.
+        Includes functionality to add, update, delete movies,
+        and display movies associated with a specific user.
+        Args:
+            app (Flask): The Flask application instance."""
+
 
     @app.route("/users/<int:user_id>/add_movie", methods=["GET", "POST"])
     def add_movie(user_id):
