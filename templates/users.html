@@ -17,15 +17,14 @@
 
   <div class="row">
     {% for user in users %}
-
     <div class="col-md-4 mb-4">
       <div class="card user-card shadow-sm h-100 border-0">
         <div class="card-body text-center">
-          <h5 class="card-title text-primary fs-4 fw-bold">{{ user.name }}</h5>
+          <h5 class="card-title custom-user-name">{{ user.name }}</h5>
           <a href="{{ url_for('user_movies', user_id=user.id) }}" class="btn btn-outline-dark mt-2">View Movies</a>
             <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Delete user {{ user.name }} and all their movies?');" style="display:inline;">
-    <button type="submit" class="btn btn-sm btn-danger mt-2">Delete User</button>
-</form>
+                <button type="submit" class="btn btn-sm btn-danger mt-2">Delete User</button>
+            </form>
         </div>
       </div>
     </div>

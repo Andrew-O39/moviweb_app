@@ -8,7 +8,9 @@ OMDB_URL = "http://www.omdbapi.com/"
 load_dotenv()
 
 def fetch_movie_details(title):
-    """Fetch movie details from OMDb API by title."""
+    """Fetch movie details from the OMDb API based on the movie title.
+    Returns:
+        dict: A dictionary of movie details if found, otherwise an empty dict."""
     if not OMDB_API_KEY:
         raise ValueError("OMDB_API_KEY is not set in environment variables.")
 

@@ -6,6 +6,11 @@ import os
 
 
 def create_app():
+    """Application factory function.
+        Configures the Flask application, sets up extensions like SQLAlchemy,
+        initializes the database, and registers all route blueprints.
+        Returns:
+            Flask: Configured Flask application instance."""
     app = Flask(__name__)
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
     app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")

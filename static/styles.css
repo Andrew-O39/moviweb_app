@@ -38,7 +38,7 @@ body {
 
 
 .user-card:hover {
-  background-color: #5a4335; /* lighter brown on hover */
+  background-color: #dad8c9; /* light gray */
   box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25);
 }
 
@@ -60,7 +60,7 @@ body {
   color: #3e2f24;
 }
 
-/* Make delete buttons match hover effect */
+/* Delete buttons */
 .btn-danger {
   background-color: #6e3f22;
   border-color: #6e3f22;
@@ -73,3 +73,9 @@ body {
   border-color: #a15f3d;
   box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
   color: #fff;
+
+ .custom-user-name {
+    color: #f8f9fa; /* example: light color for dark background */
+    font-size: 1.50rem;
+    font-family: 'Roboto', sans-serif; /* or any font you prefer */
+}

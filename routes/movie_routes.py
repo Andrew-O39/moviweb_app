@@ -6,7 +6,15 @@ def register_movie_routes(app):
 
     @app.route("/users/<int:user_id>/add_movie", methods=["GET", "POST"])
     def add_movie(user_id):
-        """Add a new movie to a user's list of favorites."""
+        """Handle adding a new movie for a specific user.
+        GET: Render the form to add a new movie.
+        POST: Validate and save the new movie details,
+          optionally fetching data from OMDb API.
+        Args:
+            user_id (int): The ID of the user adding the movie.
+        Returns:
+            Response: Redirect to the user's movie list on success or
+                  re-render the form with errors on failure."""
         user = app.data_manager.get_user_by_id(user_id)
         if not user:
             abort(404, description="User not found")
@@ -35,9 +43,19 @@ def register_movie_routes(app):
 
         return render_template("add_movie.html", user_id=user_id)
 
+
     @app.route("/users/<int:user_id>/update_movie/<int:movie_id>", methods=["GET", "POST"])
     def update_movie(user_id, movie_id):
-        """Update an existing movie in a user's list."""
+        """Handle updating details of an existing movie.
+        GET: Render the form pre-filled with the movie's current details.
+        POST: Validate and save updated movie details.
+
+        Args:
+            user_id (int): The ID of the user who owns the movie.
+            movie_id (int): The ID of the movie to update.
+        Returns:
+            Response: Redirect to user's movie list on success or
+                  re-render form with errors on failure."""
         user = app.data_manager.get_user_by_id(user_id)
         movie = app.data_manager.get_movie_by_id(movie_id)
 
@@ -63,7 +81,12 @@ def register_movie_routes(app):
 
     @app.route("/users/<int:user_id>/delete_movie/<int:movie_id>", methods=["POST"])
     def delete_movie(user_id, movie_id):
-        """Delete a movie from a user's list of favorites."""
+        """Delete a movie from a user's movie list.
+        Args:
+            user_id (int): The ID of the user who owns the movie.
+            movie_id (int): The ID of the movie to delete.
+        Returns:
+            Response: Redirect to the user's movie list after deletion."""
         user = app.data_manager.get_user_by_id(user_id)
         movie = app.data_manager.get_movie_by_id(movie_id)
 
