@@ -37,13 +37,20 @@
           <td>{{ movie.year }}</td>
           <td>{{ movie.rating }}</td>
           <td>
-            <a href="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}" class="btn btn-sm btn-warning">Edit</a>
-            <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post" class="d-inline">
-              <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this movie?');">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% else %}
+              <a href="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}"
+                 class="btn btn-sm btn-warning" style="font-size: 0.60rem">Edit Details</a>
+                <a href="{{ url_for('add_review', user_id=user.id, movie_id=movie.id) }}"
+                   class="btn btn-sm btn-primary" style="font-size: 0.60rem">Add Review</a>
+                <a href="{{ url_for('view_reviews', movie_id=movie.id) }}"
+                class="btn btn-sm btn-primary"
+                style="font-size: 0.60rem;">View Reviews
+                </a>
+              <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post" class="d-inline">
+          <button type="submit" class="btn btn-sm btn-danger" style="font-size: 0.60rem;" onclick="return confirm('Delete this movie?');">Delete Movie</button>
+        </form>
+      </td>
+    </tr>
+    {% else %}
         <tr>
           <td colspan="6">No movies found.</td>
         </tr>

@@ -5,42 +5,6 @@ from datamanager.utils import fetch_movie_details
 def register_review_routes(app):
     """Register review-related routes on the Flask app."""
 
-    @app.route('/users/<int:user_id>/movies/<int:movie_id>/add_review', methods=['GET', 'POST'])
-    def add_review(user_id, movie_id):
-        """Adds a new review for a movie by a user.
-        Args:
-            user_id (int): ID of the user submitting the review.
-            movie_id (int): ID of the movie being reviewed.
-        Returns:
-            Renders form (GET) or redirects to user's movie page after submission (POST)."""
-        user = app.data_manager.get_user_by_id(user_id)
-        movie = app.data_manager.get_movie_by_id(movie_id)
-
-        if not user or not movie:
-            abort(404)
-
-        if request.method == "POST":
-            review_text = request.form["review_text"]
-            rating = float(request.form["rating"])
-            app.data_manager.add_review(user_id, movie_id, review_text, rating)
-            flash("Review added successfully!", "success")
-            return redirect(url_for("user_movies", user_id=user.id))
-
-        return render_template("add_review.html", user=user, movie=movie)
-
-    @app.route('/movies/<int:movie_id>/reviews')
-    def view_reviews(movie_id):
-        """Displays all reviews for a specific movie.
-        Args:
-            movie_id (int): ID of the movie to display reviews for.
-        Returns:
-            HTML page showing movie details and associated reviews."""
-        movie = app.data_manager.get_movie_by_id(movie_id)
-        if not movie:
-            abort(404)
-
-        reviews = movie.reviews
-        return render_template('view_reviews.html', movie=movie, reviews=reviews)
 
     @app.route('/users/<int:user_id>/movies/<int:movie_id>/add_review', methods=['GET', 'POST'])
     def add_review(user_id, movie_id):
@@ -79,6 +43,7 @@ def register_review_routes(app):
         # GET or failed POST: render the form
         return render_template("add_review.html", user=user, movie=movie)
 
+
     @app.route('/movies/<int:movie_id>/reviews')
     def view_reviews(movie_id):
         """Display all reviews for a specific movie.
@@ -86,12 +51,20 @@ def register_review_routes(app):
             movie_id (int): ID of the movie whose reviews to display.
         Returns:
             Render a template showing the movie and its reviews."""
-        movie = app.data_manager.get_movie_by_id(movie_id)
-        if not movie:
-            abort(404, description="Movie not found")
+        try:
+            movie = app.data_manager.get_movie_by_id(movie_id)
+            if not movie:
+                flash("Movie not found.", "warning")
+                return redirect(url_for("list_users"))
 
-        reviews = movie.reviews  # Using relationship
-        return render_template("view_reviews.html", movie=movie, reviews=reviews)
+            reviews = app.data_manager.get_reviews_for_movie(movie_id)
+            return render_template("view_reviews.html", movie=movie, reviews=reviews)
+
+        except Exception as e:
+            app.logger.error(f"Error retrieving reviews for movie {movie_id}: {e}")
+            flash("An error occurred while loading reviews.", "danger")
+            return redirect(url_for("list_users"))
+
 
     @app.route('/reviews/<int:review_id>/delete', methods=['POST'])
     def delete_review(review_id):
@@ -113,6 +86,7 @@ def register_review_routes(app):
 
         return redirect(url_for("view_reviews", movie_id=movie_id))
 
+
     @app.route('/reviews/<int:review_id>/edit', methods=['GET', 'POST'])
     def edit_review(review_id):
         """Edit an existing review.
@@ -125,6 +99,9 @@ def register_review_routes(app):
         if not review:
             abort(404, description="Review not found")
 
+        user = review.user
+        movie = review.movie
+
         if request.method == "POST":
             review_text = request.form.get("review_text", "").strip()
             rating_str = request.form.get("rating", "").strip()
@@ -133,7 +110,7 @@ def register_review_routes(app):
                 rating = float(rating_str)
             except ValueError:
                 flash("Rating must be a number.", "danger")
-                return render_template("edit_review.html", review=review)
+                return render_template("edit_review.html", review=review, user=user, movie=movie)
 
             try:
                 app.data_manager.update_review(review_id, review_text, rating)
@@ -142,4 +119,4 @@ def register_review_routes(app):
             except Exception as e:
                 flash(f"Failed to update review: {e}", "danger")
 
-        return render_template("edit_review.html", review=review)
+        return render_template("edit_review.html", review=review, user=user, movie=movie)

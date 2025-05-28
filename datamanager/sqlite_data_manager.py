@@ -1,5 +1,5 @@
 from datamanager.data_manager_interface import DataManagerInterface
-from models.app_models import db, User, Movie
+from models.app_models import db, User, Movie, Review
 
 class SQLiteDataManager(DataManagerInterface):
     """This class handles database operations for users and movies."""
@@ -86,3 +86,23 @@ class SQLiteDataManager(DataManagerInterface):
     def get_review_by_id(self, review_id: int):
         """Fetch a review by its ID."""
         return db.session.get(Review, review_id)
+
+    def delete_review(self, review_id: int) -> None:
+        """Delete a review by its ID."""
+        review = self.get_review_by_id(review_id)
+        if not review:
+            raise Exception("Review not found")
+
+        db.session.delete(review)
+        db.session.commit()
+
+    def update_review(self, review_id: int, review_text: str, rating: float) -> None:
+        """Update the text and rating of a review."""
+        review = self.get_review_by_id(review_id)
+        if not review:
+            raise Exception("Review not found")
+
+        review.review_text = review_text
+        review.rating = rating
+
+        db.session.commit()
