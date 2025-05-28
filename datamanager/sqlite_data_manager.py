@@ -66,3 +66,23 @@ class SQLiteDataManager(DataManagerInterface):
         if user:
             db.session.delete(user)
             db.session.commit()
+
+    def add_review(self, user_id: int, movie_id: int, review_text: str, rating: float):
+        """Add a review for a movie by a specific user."""
+        user = self.get_user_by_id(user_id)
+        movie = self.get_movie_by_id(movie_id)
+        if not user or not movie:
+            return None
+        review = Review(user=user, movie=movie, review_text=review_text, rating=rating)
+        db.session.add(review)
+        db.session.commit()
+        return review
+
+    def get_reviews_for_movie(self, movie_id: int):
+        """Return all reviews for a given movie."""
+        movie = self.get_movie_by_id(movie_id)
+        return movie.reviews if movie else []
+
+    def get_review_by_id(self, review_id: int):
+        """Fetch a review by its ID."""
+        return db.session.get(Review, review_id)
