@@ -1,6 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-from moviweb_app import db
 
 db = SQLAlchemy()
 
@@ -31,12 +30,18 @@ class Movie(db.Model):
 
 
 class Review(db.Model):
+    __tablename__ = "reviews"  # Table name
+
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    movie_id = db.Column(db.Integer, db.ForeignKey('movie.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    movie_id = db.Column(db.Integer, db.ForeignKey('movies.id'), nullable=False)
     review_text = db.Column(db.Text, nullable=False)
     rating = db.Column(db.Float, nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+    # Relationships
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
     movie = db.relationship('Movie', backref=db.backref('reviews', lazy=True))
+
+    def __repr__(self):
+        return f"<Review {self.id} - User {self.user_id} - Movie {self.movie_id}>"

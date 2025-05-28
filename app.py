@@ -1,9 +1,12 @@
 from flask import Flask
-from models.app_models import db
+from flask_sqlalchemy import SQLAlchemy
+import os
+from models.app_models import db, User, Movie, Review
+from flask_migrate import Migrate, migrate
 from datamanager.sqlite_data_manager import SQLiteDataManager
 from routes import register_routes
-import os
 
+migrate = Migrate()
 
 def create_app():
     """Application factory function.
@@ -17,9 +20,9 @@ def create_app():
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
+    migrate.init_app(app, db)  # Initialize Flask-Migrate with app and db
 
     with app.app_context():
-        db.create_all()
         app.data_manager = SQLiteDataManager(app.config['SQLALCHEMY_DATABASE_URI'])
         register_routes(app)
 
