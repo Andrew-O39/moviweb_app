@@ -1,108 +1,269 @@
-from datamanager.data_manager_interface import DataManagerInterface
+from typing import Optional, List
 from models.app_models import db, User, Movie, Review
+from datamanager.data_manager_interface import DataManagerInterface
 
 class SQLiteDataManager(DataManagerInterface):
-    """This class handles database operations for users and movies."""
-    def __init__(self, db_uri):
-        self.db_uri = db_uri
+    """Handles all database operations using Flask-SQLAlchemy's db.session."""
 
-    def get_all_users(self):
-        """Return all users."""
-        return User.query.all()
+    def __init__(self, db_instance):
+        """
+        Initialize the data manager with a SQLAlchemy db instance.
+        Args:
+            db_instance (SQLAlchemy): The SQLAlchemy database instance.
+        """
+        self.db = db_instance
 
-    def get_user_by_id(self, user_id):
-        """Retrieve a user from the database using their ID.
-        Returns user if user object is found, otherwise None."""
-        return db.session.get(User, user_id)
+    def add_user(self, name: str, email: str) -> User:
+        """
+        Create and add a new user to the database.
+        Args:
+            name (str): User's name.
+            email (str): User's email address.
+        Returns:
+            User: The created User object.
+        """
+        email = email.strip().lower()
 
-    def get_user_movies(self, user_id):
-        """Return movies belonging to a specific user."""
-        return Movie.query.filter_by(user_id=user_id).all()
+        existing_user = self.get_user_by_email(email)
+        if existing_user:
+            raise ValueError("A user with that email already exists.")
 
-    def add_user(self, name):
-        """Add a new user to database."""
-        new_user = User(name=name)
-        db.session.add(new_user)
-        db.session.commit()
+        new_user = User(name=name.strip(), email=email)
+        self.db.session.add(new_user)
+        self.db.session.commit()
+        return new_user
 
-    def add_movie(self, user_id, name, director, year, rating, poster_url=None):
-        """Add a movie to a user's list."""
-        new_movie = Movie(
-            name=name,
-            director=director,
-            year=int(year),
-            rating=float(rating),
-            user_id=user_id,
-            poster_url=poster_url
-        )
-        db.session.add(new_movie)
-        db.session.commit()
+    def get_user_by_id(self, user_id: int) -> Optional[User]:
+        """
+        Retrieve a user by their ID.
+        Args:
+            user_id (int): User ID.
+        Returns:
+            Optional[User]: User object if found, else None.
+        """
+        return User.query.get(user_id)
 
-    def get_movie_by_id(self, movie_id):
-        """Return a movie by ID."""
-        return db.session.get(Movie, movie_id)
+    def get_user_by_email(self, email: str) -> Optional[User]:
+        """
+        Retrieve a user by their email address.
+        Args:
+            email (str): User email.
+        Returns:
+            Optional[User]: User object if found, else None.
+        """
+        return User.query.filter_by(email=email).first()
 
-    def update_movie(self, movie_id, updated_data):
-        """Update an existing movie."""
-        movie = self.get_movie_by_id(movie_id)
-        if movie:
-            for key, value in updated_data.items():
-                setattr(movie, key, value)
-            db.session.commit()
-
-    def delete_movie(self, movie_id):
-        """Delete a movie by ID."""
-        movie = self.get_movie_by_id(movie_id)
-        if movie:
-            db.session.delete(movie)
-            db.session.commit()
-
-    def delete_user(self, user_id):
-        """Delete a user by ID."""
-        # Delete all movies belonging to the user first
-        Movie.query.filter_by(user_id=user_id).delete()
-        # Then delete the user
-        user = User.query.get(user_id)
-        if user:
-            db.session.delete(user)
-            db.session.commit()
-
-    def add_review(self, user_id: int, movie_id: int, review_text: str, rating: float):
-        """Add a review for a movie by a specific user."""
+    def get_user_movies(self, user_id: int) -> List[Movie]:
+        """
+        Retrieve all movies associated with a user.
+        Args:
+            user_id (int): User ID.
+        Returns:
+            List[Movie]: List of Movie objects.
+        """
         user = self.get_user_by_id(user_id)
+        return user.movies if user else []
+
+    def get_all_users(self) -> List[User]:
+        """
+        Retrieve all users in the database.
+        Returns:
+            List[User]: List of all User objects.
+        """
+        users = self.db.session.query(User).all()
+        print("Fetched users:", users)
+        return users
+
+    def add_movie(self, user_id: int, **movie_data) -> Movie:
+        """
+        Add a new movie for a specific user.
+        Args:
+            user_id (int): User ID.
+            movie_data: Arbitrary keyword arguments for Movie fields (name, director, year, rating, poster_url).
+        Raises:
+            ValueError: If the user already added a movie with the same name.
+        Returns:
+            Movie: The newly added Movie object.
+        """
+        existing = Movie.query.filter_by(user_id=user_id, name=movie_data.get('name')).first()
+        if existing:
+            raise ValueError(f'You have already added the movie "{movie_data.get("name")}".')
+
+        new_movie = Movie(user_id=user_id, **movie_data)
+        try:
+            self.db.session.add(new_movie)
+            self.db.session.commit()
+        except Exception as e:
+            self.db.session.rollback()
+            raise e
+        return new_movie
+
+    def get_movie_by_id(self, movie_id: int) -> Optional[Movie]:
+        """
+        Retrieve a movie by its ID.
+        Args:
+            movie_id (int): Movie ID.
+        Returns:
+            Optional[Movie]: Movie object if found, else None.
+        """
+        return Movie.query.get(movie_id)
+
+    def delete_movie(self, movie_id: int) -> None:
+        """
+        Delete a movie by its ID.
+        Args:
+            movie_id (int): Movie ID.
+        """
         movie = self.get_movie_by_id(movie_id)
-        if not user or not movie:
+        if movie:
+            try:
+                self.db.session.delete(movie)
+                self.db.session.commit()
+            except Exception:
+                self.db.session.rollback()
+                raise
+
+    def update_movie(
+        self,
+        movie_id: int,
+        name: Optional[str] = None,
+        director: Optional[str] = None,
+        year: Optional[int] = None,
+        rating: Optional[float] = None,
+        poster_url: Optional[str] = None
+    ) -> Optional[Movie]:
+        """
+        Update details of a movie.
+        Args:
+            movie_id (int): Movie ID.
+            name (Optional[str]): New name.
+            director (Optional[str]): New director.
+            year (Optional[int]): New year.
+            rating (Optional[float]): New rating.
+            poster_url (Optional[str]): New poster URL.
+        Returns:
+            Optional[Movie]: Updated Movie object or None if not found.
+        """
+        movie = self.get_movie_by_id(movie_id)
+        if not movie:
             return None
-        review = Review(user=user, movie=movie, review_text=review_text, rating=rating)
-        db.session.add(review)
-        db.session.commit()
+        if name is not None:
+            movie.name = name
+        if director is not None:
+            movie.director = director
+        if year is not None:
+            movie.year = year
+        if rating is not None:
+            movie.rating = rating
+        if poster_url is not None:
+            movie.poster_url = poster_url
+
+        try:
+            self.db.session.commit()
+        except Exception:
+            self.db.session.rollback()
+            raise
+        return movie
+
+    def add_review(self, user_id: int, movie_id: int, review_text: str, rating: Optional[float] = None) -> Review:
+        """
+        Add a new review for a movie by a user.
+        Args:
+            user_id (int): User ID.
+            movie_id (int): Movie ID.
+            review_text (str): Review content.
+        Returns:
+            Review: The created Review object.
+        """
+        review = Review(user_id=user_id, movie_id=movie_id, review_text=review_text, rating=rating)
+        try:
+            self.db.session.add(review)
+            self.db.session.commit()
+        except Exception:
+            self.db.session.rollback()
+            raise
         return review
 
-    def get_reviews_for_movie(self, movie_id: int):
-        """Return all reviews for a given movie."""
-        movie = self.get_movie_by_id(movie_id)
-        return movie.reviews if movie else []
+    def get_review_by_id(self, review_id: int) -> Optional[Review]:
+        """
+        Retrieve a review by its ID.
+        Args:
+            review_id (int): Review ID.
+        Returns:
+            Optional[Review]: Review object if found, else None.
+        """
+        return Review.query.get(review_id)
 
-    def get_review_by_id(self, review_id: int):
-        """Fetch a review by its ID."""
-        return db.session.get(Review, review_id)
+    def get_reviews_for_movie(self, movie_id: int) -> List[Review]:
+        """
+        Retrieve all reviews for all movie records with the same name
+        (i.e., shared reviews across users who added the same-titled movie).
+        Args:
+            movie_id (int): Movie ID used to find the shared title.
+        Returns:
+            List[Review]: List of Review objects across all matching movies.
+        """
+        # Find the movie by ID
+        movie = self.get_movie_by_id(movie_id)
+        if not movie:
+            return []
+
+        # Find all movies with the same name
+        matching_movies = self.db.session.query(Movie).filter_by(name=movie.name).all()
+        matching_ids = [m.id for m in matching_movies]
+
+        # Return all reviews for those movie IDs
+        return self.db.session.query(Review).filter(Review.movie_id.in_(matching_ids)).all()
+
+    def update_review(self, review_id: int, review_text: str, rating: Optional[float] = None) -> Optional[Review]:
+        """
+        Update a review's text and optional rating.
+        Args:
+            review_id (int): Review ID.
+            review_text (str): New review text.
+            rating (Optional[float]): New rating.
+        Returns:
+            Optional[Review]: Updated Review object or None if not found.
+        """
+        review = self.get_review_by_id(review_id)
+        if review:
+            review.review_text = review_text
+            if rating is not None:
+                review.rating = rating
+            try:
+                self.db.session.commit()
+            except Exception:
+                self.db.session.rollback()
+                raise
+            return review
+        return None
 
     def delete_review(self, review_id: int) -> None:
-        """Delete a review by its ID."""
+        """
+        Delete a review by ID.
+        Args:
+            review_id (int): Review ID.
+        """
         review = self.get_review_by_id(review_id)
-        if not review:
-            raise Exception("Review not found")
+        if review:
+            try:
+                self.db.session.delete(review)
+                self.db.session.commit()
+            except Exception:
+                self.db.session.rollback()
+                raise
 
-        db.session.delete(review)
-        db.session.commit()
-
-    def update_review(self, review_id: int, review_text: str, rating: float) -> None:
-        """Update the text and rating of a review."""
-        review = self.get_review_by_id(review_id)
-        if not review:
-            raise Exception("Review not found")
-
-        review.review_text = review_text
-        review.rating = rating
-
-        db.session.commit()
+    def delete_user(self, user_id: int) -> None:
+        """
+        Delete a user and all associated data.
+        Args:
+            user_id (int): User ID.
+        """
+        user = self.get_user_by_id(user_id)
+        if user:
+            try:
+                self.db.session.delete(user)
+                self.db.session.commit()
+            except Exception:
+                self.db.session.rollback()
+                raise

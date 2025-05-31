@@ -1,25 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Add Movie - MovieWeb App</title>
-</head>
-<body>
 {% extends "base.html" %}
+
 {% block title %}Add Movie{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-  <h2 class="text-light mb-4">Add Movie</h2>
-  <form method="POST">
+  <h2 class="mb-4">Add a New Movie for {{ user.name }}</h2>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" novalidate>
     <div class="mb-3">
-      <label for="title" class="form-label text-light">Movie Title</label>
-      <input type="text" class="form-control" id="title" name="title" required>
+      <label for="title" class="form-label">Movie Title</label>
+      <input type="text" class="form-control" id="title" name="title" placeholder="e.g., Inception" required>
     </div>
-    <button type="submit" class="btn btn-success">Add Movie</button>
+
+    <button type="submit" class="btn btn-success">➕ Add Movie</button>
+    <a href="{{ url_for('user.user_movies', user_id=user.id) }}" class="btn btn-secondary ms-2">← Back to {{ user.name }}'s Movies</a>
   </form>
 </div>
 {% endblock %}
-    <p><a href="/users/{{ user.id }}">← Back to {{ user.name }}'s Movies</a></p>
-</body>
-</html>

@@ -1,18 +1,23 @@
-from .user_routes import register_user_routes
-from .movie_routes import register_movie_routes
-from .error_handlers import register_error_handlers
-from .main_routes import register_main_routes
-from .review_routes import register_review_routes
+from routes.user_routes import user_bp
+from routes.movie_routes import movie_bp
+from routes.main_routes import main_bp
+from routes.auth_routes import auth_bp
+from routes.review_routes import review_bp
+
+"""
+Package initialization for the routes module.
+This module registers all Flask blueprints for the application.
+"""
 
 def register_routes(app):
-    """Registers all route groups and error handlers with the Flask application.
-        This function attaches user, movie, main, review, and error routes
-        to the given Flask app instance. It acts as a centralized point to
-        keep route registration organized.
-        Args:
-            app (Flask): The Flask application instance to which routes are registered."""
-    register_user_routes(app)
-    register_movie_routes(app)
-    register_error_handlers(app)
-    register_main_routes(app)
-    register_review_routes(app)
+    """
+    Register all application blueprints to the Flask app instance.
+    Args:
+        app (Flask): The Flask application instance.
+    """
+    app.register_blueprint(user_bp)
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(movie_bp)
+    app.register_blueprint(main_bp)
+    app.register_blueprint(review_bp)
+

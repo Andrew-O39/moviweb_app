@@ -1,17 +1,24 @@
-from flask import render_template
-from flask import current_app as app
+from flask import Blueprint, render_template, session, redirect, url_for, current_app, flash
+from models.app_models import db, User
+from flask_sqlalchemy import SQLAlchemy
 
-def register_main_routes(app):
-    """Registers main entry point routes with the Flask application.
-        Typically includes the home route or landing page of the application.
-        Args:
-            app (Flask): The Flask application instance."""
+main_bp = Blueprint("main", __name__)
 
-    @app.route("/")
-    def home():
-        """Render the welcome page of the MovieWeb App.
-        This route serves as the landing page and provides
-        a brief introduction or navigation to other parts of the app.
-        Returns:
-            Response: Rendered template for the home page."""
-        return render_template("index.html")
+
+@main_bp.route("/")
+def home():
+    """
+    Render the welcome page.
+    Redirects to dashboard if session exists and user is valid.
+    """
+    user_id = session.get("user_id")
+
+    if user_id:
+        user = current_app.data_manager.get_user_by_id(user_id)
+        if user:
+            return redirect(url_for("user.user_movies", user_id=user.id))
+        else:
+            # Clear invalid session if user doesn't exist
+            session.pop("user_id", None)
+
+    return render_template("index.html")

@@ -1,3 +1,4 @@
+/* Floating Action Button */
 .fab {
   position: fixed;
   bottom: 30px;
@@ -20,35 +21,40 @@
   text-decoration: none;
 }
 
+/* Global Styles */
 body {
   background-color: #1e1e1e;
   color: #f1f1f1;
-  ont-family: 'Poppins', sans-serif;
+  font-family: 'Poppins', sans-serif;
   font-size: 16px;
 }
 
-/* Users page styling with dark brownish background */
+/* === User Card Styles === */
 .user-card {
-  background-color: #3e2f24; /* dark brownish background */
-  color: #ffffff; /* white text */
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* clean modern font */
-  font-size: 1.5rem; /* bigger font size */
-  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  background: linear-gradient(145deg, #4b3a2b, #3e2f24); /* subtle dark brown gradient */
+  color: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1.5rem;
+  border-radius: 12px;
+  transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
 }
 
-
 .user-card:hover {
-  background-color: #dad8c9; /* light gray */
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.25);
+  background: linear-gradient(145deg, #d2b48c, #c2ad7f); /* light tan gradient */
+  box-shadow: 0 12px 25px rgba(255, 255, 255, 0.3);
+  transform: translateY(-8px);
+  color: #3e2f24; /* dark text on hover for contrast */
 }
 
 .card-title {
-  color: #d2b48c; /* tan color for user names */
+  color: inherit; /* inherit text color, so it changes on hover */
   font-weight: 600;
   font-size: 2rem;
+  transition: color 0.4s ease;
 }
 
-/* Buttons */
 .btn-outline-dark {
   border-color: #d2b48c;
   color: #d2b48c;
@@ -60,7 +66,18 @@ body {
   color: #3e2f24;
 }
 
-/* Delete buttons */
+/* === Button Styles === */
+.btn-outline-dark {
+  border-color: #d2b48c;
+  color: #d2b48c;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.btn-outline-dark:hover {
+  background-color: #d2b48c;
+  color: #3e2f24;
+}
+
 .btn-danger {
   background-color: #6e3f22;
   border-color: #6e3f22;
@@ -73,9 +90,48 @@ body {
   border-color: #a15f3d;
   box-shadow: 0 4px 10px rgba(255, 255, 255, 0.2);
   color: #fff;
+}
 
- .custom-user-name {
-    color: #f8f9fa; /* example: light color for dark background */
-    font-size: 1.50rem;
-    font-family: 'Roboto', sans-serif; /* or any font you prefer */
+/* === Login Page Styles === */
+.login-page {
+  background-color: #f3f4f6;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-box {
+  background-color: white;
+  padding: 2rem;
+  max-width: 400px;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+/* === Welcome Hero Section === */
+.hero {
+  position: relative;
+  height: 100vh;
+  background: url('/static/images/hero-movie.jpg') no-repeat center center/cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+  padding: 20px;
+  text-align: center;
 }

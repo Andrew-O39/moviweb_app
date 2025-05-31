@@ -1,64 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ user.name }}'s Movies - MovieWeb App</title>
-</head>
-<body>
-    {% extends "base.html" %}
-    {% block title %}{{ user.name }}'s Movies - MovieWeb App{% endblock %}
+{% extends "base.html" %}
 
-    {% block content %}
-    <h1 class="mb-4">{{ user.name }}'s Favorite Movies</h1>
+{% block title %}{{ user.name }}'s Movies - MovieWeb App{% endblock %}
 
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Poster</th>
-          <th>Name</th>
-          <th>Director</th>
-          <th>Year</th>
-          <th>Rating</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for movie in movies %}
-        <tr>
-          <td>
-            {% if movie.poster_url %}
-              <img src="{{ movie.poster_url }}" alt="Poster for {{ movie.name }}" style="width: 60px; height: auto; border-radius: 4px;">
-            {% else %}
-              <span class="text-muted">No image</span>
-            {% endif %}
-          </td>
-          <td>{{ movie.name }}</td>
-          <td>{{ movie.director }}</td>
-          <td>{{ movie.year }}</td>
-          <td>{{ movie.rating }}</td>
-          <td>
-              <a href="{{ url_for('update_movie', user_id=user.id, movie_id=movie.id) }}"
-                 class="btn btn-sm btn-warning" style="font-size: 0.60rem">Edit Details</a>
-                <a href="{{ url_for('add_review', user_id=user.id, movie_id=movie.id) }}"
-                   class="btn btn-sm btn-primary" style="font-size: 0.60rem">Add Review</a>
-                <a href="{{ url_for('view_reviews', movie_id=movie.id) }}"
-                class="btn btn-sm btn-primary"
-                style="font-size: 0.60rem;">View Reviews
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>{{ user.name }}'s Favorite Movies</h1>
+    <a href="{{ url_for('user.list_users') }}" class="btn btn-outline-secondary">← Back to Users</a>
+  </div>
+
+  {% if movies %}
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Poster</th>
+        <th>Name</th>
+        <th>Director</th>
+        <th>Year</th>
+        <th>Rating</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for movie in movies %}
+      <tr>
+        <td>
+          {% if movie.poster_url %}
+            <img src="{{ movie.poster_url }}" alt="Poster for {{ movie.name }}" style="width: 60px; height: auto; border-radius: 4px;">
+          {% else %}
+            <span class="text-muted">No image</span>
+          {% endif %}
+        </td>
+        <td>{{ movie.name }}</td>
+        <td>{{ movie.director }}</td>
+        <td>{{ movie.year }}</td>
+        <td>{{ movie.rating }}</td>
+        <td>
+          <div class="dropdown">
+            <button class="btn btn-sm btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Actions
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="{{ url_for('movie.update_movie', user_id=user.id, movie_id=movie.id) }}">
+                  Edit Details
                 </a>
-              <form action="{{ url_for('delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post" class="d-inline">
-          <button type="submit" class="btn btn-sm btn-danger" style="font-size: 0.60rem;" onclick="return confirm('Delete this movie?');">Delete Movie</button>
-        </form>
-      </td>
-    </tr>
-    {% else %}
-        <tr>
-          <td colspan="6">No movies found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('review.add_review', user_id=user.id, movie_id=movie.id) }}">
+                  Add Review
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="{{ url_for('review.view_reviews', movie_id=movie.id) }}">
+                  View All Reviews
+                </a>
+              </li>
+              <li>
+              <form action="{{ url_for('movie.delete_movie', user_id=user.id, movie_id=movie.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete this movie?');" style="display: inline;">
+                <button type="submit" class="dropdown-item text-danger">Delete Movie</button>
+              </form>
+              </li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <div class="alert alert-info">No movies found. Add one below!</div>
+  {% endif %}
 
-    <a href="{{ url_for('add_movie', user_id=user.id) }}" class="btn btn-success">Add New Movie</a>
-    {% endblock %}
-</body>
-</html>
+  <a href="{{ url_for('movie.add_movie', user_id=user.id) }}" class="btn btn-primary mt-3">Add New Movie</a>
+</div>
+{% endblock %}

@@ -1,86 +1,83 @@
-from flask import render_template, request, redirect, url_for, flash, abort
-from flask import current_app as app
+from flask import (Blueprint, render_template, request, redirect, url_for,
+                   flash, abort, session, current_app,)
 
-def register_user_routes(app):
-    """Registers user-related routes with the Flask application.
-    This includes routes for listing users, creating, updating,
-    and deleting user profiles.
-    Args:
-        app (Flask): The Flask application instance."""
+user_bp = Blueprint("user", __name__)
 
-    @app.route("/users")
-    def list_users():
-        """"Display a list of all registered users.
-        Retrieves all users from the database and renders
-        the users page showing each user's name and links
-        to their respective movie lists.
-        Returns:
-            Response: Rendered template with the list of users."""
-        users = app.data_manager.get_all_users()
+@user_bp.route("/users")
+def list_users():
+    """Display a list of all users.
+    Only accessible after login."""
+    try:
+        users = current_app.data_manager.get_all_users()
         return render_template("users.html", users=users)
+    except Exception as e:
+        current_app.logger.error(f"Failed to load users: {e}")
+        return render_template("error.html", message="Unable to load users at the moment.")
 
 
-    @app.route("/users/<int:user_id>")
-    def user_movies(user_id):
-        """Display all movies associated with a specific user.
-            Fetches the user by ID and retrieves their movies from the database.
-            Renders a page listing the user's favorite movies with details
-            such as name, director, year, rating, and actions.
-            Args:
-                user_id (int): The ID of the user whose movies are to be displayed.
-            Returns:
-                Response: Rendered template showing the user's movies."""
-        try:
-            user = app.data_manager.get_user_by_id(user_id)
-            if not user:
-                abort(404, description="User not found")
+@user_bp.route("/<int:user_id>")
+def user_movies(user_id):
+    """
+    Display a list of movies for the currently logged-in user.
+    Ensures that users can only access their own movie list.
+    """
+    current_user_id = session.get("user_id")
 
-            movies = app.data_manager.get_user_movies(user_id)
-            return render_template("user_movies.html", user=user, movies=movies)
+    if not current_user_id:
+        flash("You need to log in first.", "warning")
+        return redirect(url_for("auth.login"))
 
-        except Exception as e:
-            return render_template("error.html", message=f"Could not load user movies: {e}")
+    # Redirect to the correct user's own page if mismatch
+    if current_user_id != user_id:
+        flash("Access denied: You can only view your own movies.", "danger")
+        return redirect(url_for("user.user_movies", user_id=current_user_id))
 
-
-    @app.route("/add_user", methods=["GET", "POST"])
-    def add_user():
-        """Handle adding a new user to the application.
-        GET: Render the form for adding a new user.
-        POST: Process the submitted form data and create a new user.
-        Returns:
-            Response: Redirect to users list on success or
-                  re-render form with errors on failure."""
-        if request.method == "POST":
-            name = request.form.get("name")
-            if not name:
-                return render_template("error.html", message="Name is required.")
-
-            try:
-                app.data_manager.add_user(name)
-                return redirect(url_for("list_users"))
-            except Exception as e:
-                return render_template("error.html", message=f"Failed to add user: {e}")
-
-        return render_template("add_user.html")
-
-
-    @app.route("/delete_user/<int:user_id>", methods=["POST"])
-    def delete_user(user_id):
-        """Delete a user and all their associated movies from the database.
-        Args:
-            user_id (int): The ID of the user to delete.
-        Returns:
-            Response: Redirect to the users list page after deletion."""
-        user = app.data_manager.get_user_by_id(user_id)
+    try:
+        user = current_app.data_manager.get_user_by_id(current_user_id)
         if not user:
             abort(404, description="User not found")
 
-        try:
-            user_name = user.name
-            app.data_manager.delete_user(user_id)
-            flash(f'User "{user_name}" and all their movies deleted successfully.', "success")
-        except Exception as e:
-            return render_template("error.html", message=f"Failed to delete user: {e}")
+        movies = current_app.data_manager.get_user_movies(current_user_id)
+        return render_template("user_movies.html", user=user, movies=movies)
 
-        return redirect(url_for("list_users"))
+    except Exception as e:
+        current_app.logger.error(f"Error loading movies for user {current_user_id}: {e}")
+        flash("An error occurred while loading your movies.", "danger")
+        return render_template("error.html", message="An error occurred while loading your movies.")
+
+
+@user_bp.route("/add", methods=["GET", "POST"])
+def add_user():
+    """
+    Register a new user in the application.
+    Prevents logged-in users from re-registering. Validates form inputs
+    and handles user creation errors gracefully.
+    """
+    if session.get("user_id"):
+        flash("You are already logged in.", "info")
+        return redirect(url_for("user.user_movies", user_id=session["user_id"]))
+
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        email = request.form.get("email", "").strip().lower()
+
+        if not name or not email:
+            flash("Name and email are required.", "warning")
+            return render_template("add_user.html")
+
+        try:
+            user = current_app.data_manager.add_user(name, email)
+            # Set session so user is logged in immediately
+            session["user_id"] = user.id
+
+            flash(f"User {user.name} added successfully!", "success")
+            return redirect(url_for("user.user_movies", user_id=user.id))
+
+        except ValueError as ve:
+            flash(str(ve), "danger")  # For duplicate email
+        except Exception as e:
+            current_app.logger.error(f"Failed to add user: {e}")
+            flash("An unexpected error occurred.", "danger")
+
+    return render_template("add_user.html")
 
