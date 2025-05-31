@@ -42,3 +42,10 @@ moviweb_app/
 ├── app.py
 ├── config.py
 └── README.md
+
+NB: The auth_utils.py file which was intended to 
+protect routes that should only be accessible 
+to logged-in users is not currently in use. 
+For now the routes are doing self-checking using 
+session.get("user_id"). 
+However, I am keeping it for future login protection.
